@@ -110,6 +110,8 @@ const Nav = ({graphData, setGraphData, focusNode, focusOnNode, colourPalette, se
 
     const [areStatesLoaded, setAreStatesLoaded] = useState(true);
 
+    const [searchInput, setSearchInput] = useState('');
+    const [displayValue, setDisplayValue] = useState('');
 
     useEffect(() => {
         if (!areMaxValuesLoaded) {
@@ -168,7 +170,25 @@ const Nav = ({graphData, setGraphData, focusNode, focusOnNode, colourPalette, se
     };
 
     const handleOnSearch = (data) => {
-        setOptions(getAuthors(graphData, []).filter((o) => o.label.toLowerCase().includes(data.toLowerCase())));
+        setSearchInput(data);
+        if (data === '') {
+            setDisplayValue('');
+        }
+        setOptions(
+          getAuthors(graphData, []).filter((o) =>
+            o.label.toLowerCase().includes(data.toLowerCase())
+          )
+        );
+    };
+
+    const handleOnSelect = (selectedValue) => {
+        const selectedOption = options.find((option) => option.value === selectedValue);
+        if (selectedOption) {
+            setDisplayValue(selectedOption.label);
+            setSearchInput('');
+            const selectedNode = graphData.nodes.find((n) => n.id === selectedValue);
+            focusOnNode(selectedNode);
+        }
     };
 
     const handleExportClick = async () => {
@@ -189,11 +209,6 @@ const Nav = ({graphData, setGraphData, focusNode, focusOnNode, colourPalette, se
         } catch (error) {
             console.error("Failed to export graph data:", error);
         }
-    };
-
-    const onNavbarSelect = (data) => {
-        const selectedNode = graphData.nodes.find(n => n.id === data);
-        focusOnNode(selectedNode);
     };
 
     const boxStyle = {
@@ -261,11 +276,12 @@ const Nav = ({graphData, setGraphData, focusNode, focusOnNode, colourPalette, se
                     <Title style={{margin:0, color:'white'}} level={4}>Graphe des co-publications</Title>
                     <AutoComplete
                         options={options}
+                        value={searchInput || displayValue}
                         style={{
                             width: 200,
                             color:'white'
                         }}
-                        onSelect={onNavbarSelect}
+                        onSelect={handleOnSelect}
                         onSearch={handleOnSearch}
                         placeholder="Search author"
                         variant={colourPalette.autocomplete}
